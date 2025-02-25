@@ -2,20 +2,16 @@ const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
 const app = express();
-const fs = require('fs');
 
 app.use(cors());
 app.use(express.json());
 
 const db = mysql.createConnection({
-  host: 'gateway01.us-west-2.prod.aws.tidbcloud.com',
-  user: '2SFr66t913atmzV.root',
-  password: 'CnxAk3t7YePPLoaz',
+  host: 'localhost',
+  user: 'root',
+  password: '1980',
   database: 'exam_booking_system',
-  port: 4000,
-  ssl: {
-    ca: fs.readFileSync('../backend/isrgrootx1.pem')
-  }
+  port: 3307,
 });
 
 db.connect((err) => {
@@ -30,6 +26,8 @@ db.connect((err) => {
 app.get('/available-examrooms', (req, res) => {
   db.query(
     `SELECT er.room_id, er.room_name, er.total_seats, 
+            DATE_FORMAT(er.exam_date, '%Y-%m-%d') AS exam_date, 
+            er.exam_time, 
             GROUP_CONCAT(c.seat_number) AS booked_seats
      FROM examroom er 
      LEFT JOIN candidate c ON er.room_id = c.selected_room_id 
@@ -59,6 +57,8 @@ app.get('/available-examrooms', (req, res) => {
           total_seats: totalSeats,
           available_seats_count: availableSeats.length,
           available_seats: availableSeats, // เพิ่มข้อมูลที่นั่งว่าง
+          exam_date: room.exam_date,  // วันที่สอบ (ไม่มีเวลา)
+          exam_time: room.exam_time   // เวลาสอบ
         };
       });
 

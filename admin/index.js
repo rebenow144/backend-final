@@ -2,7 +2,7 @@ const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
 const app = express();
-const fs = require('fs');
+
 
 // Middleware
 app.use(cors());
@@ -10,15 +10,11 @@ app.use(express.json());
 
 // Database connection
 const db = mysql.createConnection({
-  host: 'gateway01.us-west-2.prod.aws.tidbcloud.com',
-  user: '2SFr66t913atmzV.root',
-  password: 'CnxAk3t7YePPLoaz',
+  host: 'localhost',
+  user: 'root',
+  password: '1980',
   database: 'exam_booking_system',
-  port: 4000,
-  ssl: {
-    ca: fs.readFileSync('../backend/isrgrootx1.pem')
-  }
-
+  port: 3307,
 });
 
 // เพิ่ม error handling ที่ละเอียดขึ้น
@@ -132,10 +128,15 @@ app.put('/examrooms/:id', (req, res) => {
 
 // ลบห้องสอบ ผ่านแล้ว
 app.delete('/examrooms/:id', (req, res) => {
-  db.query(
-    'DELETE FROM examroom WHERE room_id = ?',
-    [req.params.id],
-    (err, result) => {
+  const roomId = req.params.id;
+
+  db.query('DELETE FROM candidate WHERE selected_room_id = ?', [roomId], (err, result) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ message: 'Error deleting related candidates', error: err.message });
+    }
+
+    db.query('DELETE FROM examroom WHERE room_id = ?', [roomId], (err, result) => {
       if (err) {
         console.error('Database error:', err);
         return res.status(500).json({ message: 'Error deleting exam room', error: err.message });
@@ -144,8 +145,8 @@ app.delete('/examrooms/:id', (req, res) => {
         return res.status(404).json({ message: 'Exam room not found' });
       }
       res.json({ message: 'Exam room deleted successfully' });
-    }
-  );
+    });
+  });
 });
 
 const PORT = 5000;
