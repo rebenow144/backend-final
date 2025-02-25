@@ -12,9 +12,9 @@ app.use(express.json());
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '1980',
+  password: 'root',
   database: 'exam_booking_system',
-  port: 3307,
+  port: 3306,
 });
 
 // เพิ่ม error handling ที่ละเอียดขึ้น
